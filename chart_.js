@@ -56,21 +56,18 @@ var drow = (data_, linetype) => {
     document.getElementById('count').innerText = data_.length
    /* Scale */
     var xScale = d3.scaleTime()
-        .domain([0, 9])
+        .domain([0, 15])
         .range([0, (width)]);
 
     var yScale = d3.scaleLinear()
         .domain([100, 0])
         .range([0, height]);
     
-    
-    
-    
     /* Add SVG */
     var svg = d3.select("#chart").append("svg")
         .attr("width", (width)+"px")
         .attr("height", (height + 10)+"px")
-        .attr('style', 'margin-left: ' + (step ? 0 : 5) + '%;')
+        .attr('style', 'margin-left: ' + (step ? 0 : 3) + '%;')
         .append('g')
     
         // /* Add sieverts into SVG */
@@ -165,31 +162,20 @@ var out = (d) => {
         dotsOnLine[dotIndex].classList.remove('hide')
     }
 }
+const fieldsForVis =  ["3.3-People finding out that he/she took the test", "3.3-The impact a possible positive result may have on his/her life", "3.3-Reliability of the test",
+"4.2-Accessibility of testing services", "4.2-Awareness of testing services", "4.2-Confidentiality guaranteed by testing services",
+"4.3-Physical environment", "4.3-Staff attitude", "4.3-Possibility of self-testing",
+"4.4-Supportive environment / confidentiality", "4.4-Speed of testing procedure", "4.4-Information provided about testing procedure",
+"5.1-HIV/AIDS implications", "5.1-Causing potential harm to others", "5.1-Testing services"]
 
 const mapToChartData = row => ({ lineData: step ? 
-    [+row["41DysfunctionalInstitutions"],
-    +row["41DysfunctionalInstitutions"],
-    +row["41LowLivingStandards"],
-    +row["41LackHhealthyEnvironment"],
-    +row["42BetterQualityLife"],
-    +row["42BetterEducationChildren"],
-    +row["42BetterAccessHealthSocialServices"],
-    +row["43GlobalNetwork"],
-    +row["43NetworkAcquaintances"],
-    +row["43NumerousFacilitatingFactors "]] : 
-    [+row["41DysfunctionalInstitutions"],
-    +row["41LowLivingStandards"],
-    +row["41LackHhealthyEnvironment"],
-    +row["42BetterQualityLife"],
-    +row["42BetterEducationChildren"],
-    +row["42BetterAccessHealthSocialServices"],
-    +row["43GlobalNetwork"],
-    +row["43NetworkAcquaintances"],
-    +row["43NumerousFacilitatingFactors "]],
+    [fieldsForVis[0], ...fieldsForVis].map(a => +row[a]): 
+    fieldsForVis.map(a => +row[a]),
     data: row})
 
 let globalData
-d3.csv('./Macedonia Data FINAL - Sheet 1.csv')
+
+d3.csv('./undp_tp_ge_Standard.csv')
     .then(csv => {
         csv_nonum = []
         csv.forEach(row => {
@@ -329,9 +315,18 @@ const drowFilters = (dataRows) => {
         })
     })
     
+    s1r = new RegExp(["2.1", "2.3", "2.4", "2.6"].map(a => '^'+a).join("|"))
+    s2r = new RegExp(["3.1", "3.2", "3.4"].map(a => '^'+a).join("|"))
+    s3r = new RegExp(["4.1"].map(a => '^'+a).join("|"))
+    s4r = new RegExp(["6.1", "6.2", "6.5", "6.7", "6.8", "6.9", "6.10"].map(a => '^'+a).join("|"))
+
     cols.forEach(col => {
         if (col.indexOf('Other') !== -1 || col.indexOf('3.4') !== -1 || col.indexOf('6.3') !== -1) return
-        let sec = (col.indexOf('4.4') === 0 || col.indexOf('4.5') === 0) ? 1 : col.indexOf('2.') === 0 ? 2 : col.indexOf('3.') === 0 ? 3 : col.indexOf('6.') === 0 ? 4 : !1
+        let sec = s1r.test(col) ? 1 
+            : s2r.test(col) ? 2
+            : s3r.test(col) ? 3
+            : s4r.test(col) ? 4
+            : !1
         if(!sec) return
         colorizeColumns.push(col)
         let cont = document.createElement('div')
