@@ -114,7 +114,7 @@ var show = (d) => {
     
     // alert(d.data.Experience)
     var msg = '';
-    ["Title","Experience"]//,"FragmentID","NarrID","Are you related to/do you know either the victim or the perpetrator?","How is the victim related to the perpetrator?","What is the age category of the victim?","2.5 What is the gender of the perpetrator?","2.6 Where did this situation happen?","2.6 Other","2.8 Where did this situation happen?","3.1 Did you act/do something about this situation?","3.5 Have you contacted any services about this situation?","3.5 Other","4.1 The outcome of this situation for the victim was…","4.2 Situations like these…","5.1 If you were to witness a similar situation in the future you would…","6.5 Education","6.1 Gender","6.2 Age","6.6 Marital status","6.3 Ethnicity","6.3 Other","6.7 Monthly income","6.4 Attendance of religious services","6.8 Region of residence","6.11 Region originally from","6.11 Other","6.9 Residence","6.10 How long have you lived here for?"]
+    ["1.1. Experience", "1.2 Title"]//,"FragmentID","NarrID","Are you related to/do you know either the victim or the perpetrator?","How is the victim related to the perpetrator?","What is the age category of the victim?","2.5 What is the gender of the perpetrator?","2.6 Where did this situation happen?","2.6 Other","2.8 Where did this situation happen?","3.1 Did you act/do something about this situation?","3.5 Have you contacted any services about this situation?","3.5 Other","4.1 The outcome of this situation for the victim was…","4.2 Situations like these…","5.1 If you were to witness a similar situation in the future you would…","6.5 Education","6.1 Gender","6.2 Age","6.6 Marital status","6.3 Ethnicity","6.3 Other","6.7 Monthly income","6.4 Attendance of religious services","6.8 Region of residence","6.11 Region originally from","6.11 Other","6.9 Residence","6.10 How long have you lived here for?"]
         .forEach(m => {
         msg += m + ': ' + d.data[m] + '\n'
     })
@@ -162,11 +162,22 @@ var out = (d) => {
         dotsOnLine[dotIndex].classList.remove('hide')
     }
 }
-const fieldsForVis =  ["3.3-People finding out that he/she took the test", "3.3-The impact a possible positive result may have on his/her life", "3.3-Reliability of the test",
-"4.2-Accessibility of testing services", "4.2-Awareness of testing services", "4.2-Confidentiality guaranteed by testing services",
-"4.3-Physical environment", "4.3-Staff attitude", "4.3-Possibility of self-testing",
-"4.4-Supportive environment / confidentiality", "4.4-Speed of testing procedure", "4.4-Information provided about testing procedure",
-"5.1-HIV/AIDS implications", "5.1-Causing potential harm to others", "5.1-Testing services"]
+
+const fieldsForVis =  ["3.3 What was the person looking to get tested worried about-People finding out that he/she took the test",
+"3.3 What was the person looking to get tested worried about-The impact a possible positive result may have on his/her life",
+"3.3 What was the person looking to get tested worried about-Reliability of the test",
+"4.2 The deciding factor to test for HIV was-Accessibility of testing services",
+"4.2 The deciding factor to test for HIV was-Awareness of testing services",
+"4.2 The deciding factor to test for HIV was-Confidentiality guaranteed by testing services",
+"4.3 The testing process was made easy and painless by-Physical environment",
+"4.3 The testing process was made easy and painless by-Staff attitude",
+"4.3 The testing process was made easy and painless by-Possibility of self-testing",
+"4.4 The person who took the test liked-Supportive environment / confidentiality",
+"4.4 The person who took the test liked-Speed of testing procedure",
+"4.4 The person who took the test liked-Information provided about testing procedure",
+"5.1 The person looking to get tested had information on-HIV/AIDS implications",
+"5.1 The person looking to get tested had information on-Causing potential harm to others",
+"5.1 The person looking to get tested had information on-Testing services"]
 
 const mapToChartData = row => ({ lineData: step ? 
     [fieldsForVis[0], ...fieldsForVis].map(a => +row[a]): 
