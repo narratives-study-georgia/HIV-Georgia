@@ -9,14 +9,16 @@ var color = (d, i) => {
     
     if(!selected || selected == 'None' ) return '#747474';
     
-    colls = {};
+    colurs = {};
 
-    [...drowDropdowns[selected].dom.getElementsByClassName('select-option')].forEach(opt => colls[opt.innerText] = window.getComputedStyle(opt).color )
+    [...drowDropdowns[selected].dom.getElementsByClassName('select-option')].forEach(opt => colurs[opt.innerText] = window.getComputedStyle(opt).color )
     
     if(!d.data)  return '#747474';
     
-    // console.log(colls[d.data[selected]])
-    return colls[d.data[selected]] //| '#747474'
+    if (d.data[selected]) return colurs[d.data[selected]] //| '#747474'
+    //multi select 
+    return colurs[Object.keys(colurs).filter(option => d.data[selected + '_' + option] == "1" )[0]]
+    
     return "rgb(148, 103, 189)"
 }
 
@@ -111,7 +113,6 @@ var drow = (data_, linetype) => {
 }
 
 var show = (d) => {
-    
     // alert(d.data.Experience)
     var msg = '';
     ["1.1. Experience", "1.2 Title"]//,"FragmentID","NarrID","Are you related to/do you know either the victim or the perpetrator?","How is the victim related to the perpetrator?","What is the age category of the victim?","2.5 What is the gender of the perpetrator?","2.6 Where did this situation happen?","2.6 Other","2.8 Where did this situation happen?","3.1 Did you act/do something about this situation?","3.5 Have you contacted any services about this situation?","3.5 Other","4.1 The outcome of this situation for the victim was…","4.2 Situations like these…","5.1 If you were to witness a similar situation in the future you would…","6.5 Education","6.1 Gender","6.2 Age","6.6 Marital status","6.3 Ethnicity","6.3 Other","6.7 Monthly income","6.4 Attendance of religious services","6.8 Region of residence","6.11 Region originally from","6.11 Other","6.9 Residence","6.10 How long have you lived here for?"]
@@ -307,52 +308,79 @@ document.getElementById("clear").addEventListener('click', () => {
 
 
 const filter = () => {
-    drow(Object.keys(drowDropdowns)
-        .reduce((globalDataReduced,drowDropdownName) => 
-            globalDataReduced.filter(row => drowDropdowns[drowDropdownName].values.length == 0 || drowDropdowns[drowDropdownName].values.indexOf(row[drowDropdownName]) !== -1)
+    let filteredData = Object.keys(drowDropdowns)
+        .reduce((globalDataReduced, drowDropdownName) => {
+            // console.log(globalDataReduced, drowDropdowns, drowDropdownName) 
+            if(drowDropdowns[drowDropdownName].values.length == 0) return globalDataReduced
+
+            if (globalData[0][drowDropdownName] ){
+                return globalDataReduced
+                    .filter(row => drowDropdowns[drowDropdownName].values.length == 0 
+                        || drowDropdowns[drowDropdownName].values.indexOf(row[drowDropdownName]) !== -1)
+            } else {
+                let filteredDataFromMulti = []
+                drowDropdowns[drowDropdownName].values
+                    .map(val => drowDropdownName + '_' + val)
+                    .forEach(colName => {
+                        filteredDataFromMulti = [...filteredDataFromMulti, ...globalDataReduced.filter(row => row[colName] == "1")]
+                    })
+                
+                // console.log(drowDropdownName, filteredDataFromMulti)
+                return filteredDataFromMulti
+            }
+        }
         , globalData)
-        .map(mapToChartData))
+        .map(mapToChartData)
+    // console.log(2222, filteredData)
+    drow(filteredData)
 }
 
 const uniqueValues = {}
 const colorizeColumns = []
 const drowFilters = (dataRows) => {
     cols = Object.keys(dataRows[0])
-    cols.forEach(col => uniqueValues[col] = [])
-    
-    dataRows.forEach(row => {
-        cols.forEach(col => {
-            if ( uniqueValues[col].indexOf(row[col]) === -1) uniqueValues[col].push(row[col])
-        })
+    cols.forEach(col => {
+        let questionName = col.split('_')[0]
+        uniqueValues[questionName] = uniqueValues[questionName] || []
+        if(col.indexOf('_') !== -1) uniqueValues[questionName].push(col.split('_')[1])
     })
     
-    s1r = new RegExp(["2.1", "2.3", "2.4", "2.6"].map(a => '^'+a).join("|"))
+    dataRows.forEach(row => cols
+            .filter(col => col.indexOf('_') === -1)
+            .filter(col => uniqueValues[col].indexOf(row[col]) === -1)
+            .forEach(col => uniqueValues[col].push(row[col])))
+    
+    s1r = new RegExp(["2.1", "2.2", "2.3", "2.4", "2.5", "2.6"].map(a => '^'+a).join("|"))
     s2r = new RegExp(["3.1", "3.2", "3.4"].map(a => '^'+a).join("|"))
-    s3r = new RegExp(["4.1"].map(a => '^'+a).join("|"))
-    s4r = new RegExp(["6.1", "6.2", "6.5", "6.7", "6.8", "6.9", "6.10"].map(a => '^'+a).join("|"))
+    s3r = new RegExp(["4.1", "4.5"].map(a => '^'+a).join("|"))
+    s4r = new RegExp(["6.1", "6.2", "6.3", "6.4", "6.5", "6.6", "6.7", "6.8", "6.9", "6.10"].map(a => '^'+a).join("|"))
 
-    cols.forEach(col => {
-        if (col.indexOf('Other') !== -1 || col.indexOf('3.4') !== -1 || col.indexOf('6.3') !== -1) return
-        let sec = s1r.test(col) ? 1 
-            : s2r.test(col) ? 2
-            : s3r.test(col) ? 3
-            : s4r.test(col) ? 4
-            : !1
-        if(!sec) return
-        colorizeColumns.push(col)
-        let cont = document.createElement('div')
-        cont.setAttribute('class', "select-group")
-        let titl = document.createElement('div')
-        titl.setAttribute('class', "select-title")
-        titl.innerText = col
-        cont.appendChild(titl)
-        uniqueValues[col].forEach(val => {
-            let opt = document.createElement('div')
-            opt.setAttribute('class', "select-option")
-            opt.innerText = val
-            cont.appendChild(opt)
-        })
-        document.getElementById("sec-" + sec).appendChild(cont)
+    let uniqueCols = [...new Set(cols.map(col => col.split('_')[0]))]
+    
+    uniqueCols.forEach(col => {
+            if (col.indexOf('Other') !== -1) return
+            let sec = s1r.test(col) ? 1 
+                : s2r.test(col) ? 2
+                : s3r.test(col) ? 3
+                : s4r.test(col) ? 4
+                : !1
+            if(!sec) return
+            col = col.split('_')[0]
+            colorizeColumns.push(col)
+            let cont = document.createElement('div')
+            cont.setAttribute('class', "select-group")
+            let titl = document.createElement('div')
+            titl.setAttribute('class', "select-title")
+            titl.innerText = col
+            cont.appendChild(titl)
+            // console.log(col)
+            uniqueValues[col].forEach(val => {
+                let opt = document.createElement('div')
+                opt.setAttribute('class', "select-option")
+                opt.innerText = val
+                cont.appendChild(opt)
+            })
+            document.getElementById("sec-" + sec).appendChild(cont)
     })
     
 
